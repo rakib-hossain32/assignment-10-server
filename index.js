@@ -40,15 +40,14 @@ async function run() {
         const result = await moviesCollection.find(query).toArray();
         res.send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
 
     // filter
-    app.get("/movies", async (req, res) => {
+    app.get("/movies/filter", async (req, res) => {
       try {
-        
         const filterGenres = req.query.genres
           ? req.query.genres
               .split(",")
@@ -59,10 +58,9 @@ async function run() {
         const minRating = parseFloat(req.query.minRating) || 0;
         const maxRating = parseFloat(req.query.maxRating) || 10;
 
-        
         const query = {
           ...(filterGenres.length > 0 && {
-            genre: { $in: filterGenres }, 
+            genre: { $in: filterGenres },
           }),
           rating: { $gte: minRating, $lte: maxRating },
         };
@@ -70,7 +68,7 @@ async function run() {
         const movies = await moviesCollection.find(query).toArray();
         res.send(movies);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -90,14 +88,14 @@ async function run() {
 
     // get one movie
     app.get("/movies/:id", async (req, res) => {
-      console.log(req.params);
+      // console.log(req.params);
       try {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
         const result = await moviesCollection.findOne(query);
         res.send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -107,6 +105,32 @@ async function run() {
       try {
         const result = await moviesCollection.insertOne(req.body);
         res.status(201).send(result);
+      } catch (error) {
+        // console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+    // update movie
+    app.patch("/movies/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateMovie = req.body;
+      // console.log(id, updateMovie);
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: updateMovie,
+      };
+      const result = await moviesCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    // delete movie
+    app.delete("/movies/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await moviesCollection.deleteOne(query);
+        res.send(result);
       } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Server Error" });
