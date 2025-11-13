@@ -26,6 +26,8 @@ async function run() {
     await client.connect();
     const database = client.db("movie_master_pro");
     const moviesCollection = database.collection("movies");
+    const usersCollection = database.collection("users");
+    const watchlistCollection = database.collection('watchlist')
 
     // get user's own movies
     app.get("/movies/my-collection", async (req, res) => {
@@ -112,7 +114,7 @@ async function run() {
     });
 
     // update movie
-    app.patch("/movies/:id", async (req, res) => {
+    app.patch("/movies/update/:id", async (req, res) => {
       const id = req.params.id;
       const updateMovie = req.body;
       // console.log(id, updateMovie);
@@ -136,6 +138,67 @@ async function run() {
         res.status(500).send({ message: "Server Error" });
       }
     });
+
+    // watch list related
+
+    // get all watch list
+    app.get("/watchlist", async (req, res) => {
+      try {
+        const result = await watchlistCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+    // create watch list
+    app.post("/watchlist-create", async (req, res) => {
+      try {
+        const result = await watchlistCollection.insertOne(req.body);
+        res.status(201).send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+    // user related
+
+    // get all users
+    app.get("/users", async (req, res) => {
+      try {
+        const result = await usersCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+
+    // user post
+    app.post("/users-create", async (req, res) => {
+      try {
+        const newUser = req.body;
+        // console.log(newUser)
+        const email = newUser.email;
+        const query = { email: email };
+        const exitingUser = await usersCollection.findOne(query)
+        // console.log(Boolean(exitingUser));
+        if (exitingUser) {
+          res.send({ message: "user already exit" });
+        } else {
+          const result = await usersCollection.insertOne(newUser);
+          res.status(201).send(result);
+        }
+      } catch (error) {
+        // console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
