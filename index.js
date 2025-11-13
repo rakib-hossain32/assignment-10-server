@@ -47,7 +47,7 @@ async function run() {
       }
     });
 
-    // filter
+    //  Filter (Genre + Rating)
     app.get("/movies/filter", async (req, res) => {
       try {
         const filterGenres = req.query.genres
@@ -60,17 +60,22 @@ async function run() {
         const minRating = parseFloat(req.query.minRating) || 0;
         const maxRating = parseFloat(req.query.maxRating) || 10;
 
-        const query = {
-          ...(filterGenres.length > 0 && {
-            genre: { $in: filterGenres },
-          }),
-          rating: { $gte: minRating, $lte: maxRating },
-        };
+        const query = {};
 
-        const movies = await moviesCollection.find(query).toArray();
+        if (filterGenres.length > 0) {
+          query.genre = { $in: filterGenres };
+        }
+
+        query.rating = { $gte: minRating, $lte: maxRating };
+
+        const movies = await moviesCollection
+          .find(query)
+          .sort({ createAt: -1 })
+          .toArray();
+
         res.send(movies);
       } catch (error) {
-        // console.error(error);
+        console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -144,7 +149,13 @@ async function run() {
     // get all watch list
     app.get("/watchlist", async (req, res) => {
       try {
-        const result = await watchlistCollection.find().toArray();
+        const email = req.query.email;
+        console.log(email)
+        const query = {};
+        if (email) {
+          query.email = email;
+        }
+        const result = await watchlistCollection.find(query).toArray();
         res.send(result);
       } catch (error) {
         console.error(error);
