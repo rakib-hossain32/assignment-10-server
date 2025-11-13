@@ -75,7 +75,7 @@ async function run() {
 
         res.send(movies);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -88,7 +88,7 @@ async function run() {
         const result = await moviesCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -139,7 +139,7 @@ async function run() {
         const result = await moviesCollection.deleteOne(query);
         res.send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -150,7 +150,7 @@ async function run() {
     app.get("/watchlist", async (req, res) => {
       try {
         const email = req.query.email;
-        console.log(email)
+        // console.log(email)
         const query = {};
         if (email) {
           query.email = email;
@@ -169,7 +169,7 @@ async function run() {
         const result = await watchlistCollection.insertOne(req.body);
         res.status(201).send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -178,12 +178,12 @@ async function run() {
     app.delete("/watchlist/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        console.log(id);
+        // console.log(id);
         const query = { id: id };
         const result = await watchlistCollection.deleteOne(query);
         res.send(result);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
@@ -222,7 +222,7 @@ async function run() {
       }
     });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
