@@ -27,7 +27,7 @@ async function run() {
     const database = client.db("movie_master_pro");
     const moviesCollection = database.collection("movies");
     const usersCollection = database.collection("users");
-    const watchlistCollection = database.collection('watchlist')
+    const watchlistCollection = database.collection("watchlist");
 
     // get user's own movies
     app.get("/movies/my-collection", async (req, res) => {
@@ -163,6 +163,20 @@ async function run() {
       }
     });
 
+    // delete watch list
+    app.delete("/watchlist/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        console.log(id);
+        const query = { id: id };
+        const result = await watchlistCollection.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
     // user related
 
     // get all users
@@ -176,7 +190,6 @@ async function run() {
       }
     });
 
-
     // user post
     app.post("/users-create", async (req, res) => {
       try {
@@ -184,7 +197,7 @@ async function run() {
         // console.log(newUser)
         const email = newUser.email;
         const query = { email: email };
-        const exitingUser = await usersCollection.findOne(query)
+        const exitingUser = await usersCollection.findOne(query);
         // console.log(Boolean(exitingUser));
         if (exitingUser) {
           res.send({ message: "user already exit" });
@@ -197,8 +210,6 @@ async function run() {
         res.status(500).send({ message: "Server Error" });
       }
     });
-
-
 
     await client.db("admin").command({ ping: 1 });
     console.log(
