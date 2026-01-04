@@ -10,6 +10,7 @@ app.use(express.json());
 // YgITan3t76B1D2uB;
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const e = require("express");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zneri.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -23,7 +24,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const database = client.db("movie_master_pro");
     const moviesCollection = database.collection("movies");
     const usersCollection = database.collection("users");
@@ -110,6 +111,7 @@ async function run() {
     // add movie
     app.post("/movies", async (req, res) => {
       try {
+        
         const result = await moviesCollection.insertOne(req.body);
         res.status(201).send(result);
       } catch (error) {
@@ -163,6 +165,20 @@ async function run() {
       }
     });
 
+    // get one watch list
+    app.get("/watchlist/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { id: id, email: req.query.email };
+        // console.log(query)
+        const result = await watchlistCollection.findOne(query);
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
     // create watch list
     app.post("/watchlist-create", async (req, res) => {
       try {
@@ -201,26 +217,63 @@ async function run() {
       }
     });
 
+    // get user role
+    app.get("/users-role", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        if (user) {
+          res.send({ role: user.role });
+        } else {
+          res.status(404).send({ message: "User not found" });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
     // user post
     app.post("/users-create", async (req, res) => {
       try {
         const newUser = req.body;
         // console.log(newUser)
+        const displayName = newUser.displayName || "Unknown";
+        
+
         const email = newUser.email;
+        const photoURL = newUser.photoURL || "";
         const query = { email: email };
         const exitingUser = await usersCollection.findOne(query);
-        // console.log(Boolean(exitingUser));
+        
         if (exitingUser) {
           res.send({ message: "user already exit" });
         } else {
-          const result = await usersCollection.insertOne(newUser);
+          const User = { displayName, email, photoURL, createdAt: new Date(), role: "user" };
+          // console.log(User);
+          const result = await usersCollection.insertOne(User);
           res.status(201).send(result);
         }
       } catch (error) {
-        // console.error(error);
+        console.error(error);
         res.status(500).send({ message: "Server Error" });
       }
     });
+
+  //   // user update
+  // app.patch("/users/:id", async (req, res) => {
+  //   try {
+  //     const id = req.params.id;
+  //     const filter = { _id: new ObjectId(id) };
+  //     const updatedDoc = { $set: req.body };
+  //     const result = await usersCollection.updateOne(filter, updatedDoc);
+  //     res.send(result);
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).send({ message: "Server Error" });
+  //   }
+  // });
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
